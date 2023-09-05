@@ -1,0 +1,32 @@
+volumes:
+  music-aio:
+
+services:
+
+  web:
+    build: ./app/server
+    command: uvicorn app.main:app --reload --workers 1 --host 0.0.0.0 --port 8000
+    volumes:
+      - ./src:/usr/src/app
+    ports:
+      - 8004:8000
+    environment:
+      - DATABASE_CONN_STRING=postgresql+psycopg://root:secret@db:5432/music-aio
+      - SCOPE=user-library-read
+      - CLIENT_ID=07400bfe46634f1f8d7752496b5d8c7e
+      - CLIENT_SECRET=0a41f3b4e51a4fc7a9e6c1f30a4c7f89
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - db
+
+  db:
+    image: postgres:latest
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_USER=root
+      - POSTGRES_DB=music-aio
+    volumes:
+      - music-aio:/var/lib/postgresql/data
